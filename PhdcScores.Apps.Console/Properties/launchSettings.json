@@ -1,0 +1,19 @@
+﻿{
+	"profiles": {
+		"PhdcScores.Apps.Console Console": {
+			"commandName": "Project",
+			"dotnetRunMessages": true,
+			"environmentVariables": {
+				"DOTNET_ENVIRONMENT": "Development"
+			}
+		},
+		"PhdcScores.Apps.Console File": {
+			"commandName": "Project",
+			"dotnetRunMessages": true,
+			"environmentVariables": {
+				"DOTNET_ENVIRONMENT": "Development"
+			},
+			"commandLineArgs": "--filename C:\\Users\\FrancoisWNel\\Documents\\Scores.txt"
+		}
+	}
+}
