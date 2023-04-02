@@ -5,4 +5,7 @@
 		<Nullable>enable</Nullable>
 		<OutputType>Exe</OutputType>
 	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\PhdcScores.Shared.Common\PhdcScores.Shared.Common.csproj" />
+	</ItemGroup>
 </Project>
