@@ -17,5 +17,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\PhdcScores.Shared.Common\PhdcScores.Shared.Common.csproj" />
 		<ProjectReference Include="..\PhdcScores.Shared.Data\PhdcScores.Shared.Data.csproj" />
+		<ProjectReference Include="..\PhdcScores.Shared.Services\PhdcScores.Shared.Services.csproj" />
 	</ItemGroup>
 </Project>

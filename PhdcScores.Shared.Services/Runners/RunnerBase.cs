@@ -10,13 +10,15 @@ using MatchScore = PhdcScores.Shared.Common.Entities.MatchScore;
 
 namespace PhdcScores.Shared.Services.Runners;
 
+// FWN 2023-04-02: Not very happy with the complexity of this class, but I've run out of the time needed to decompose
+// it even further. Next steps would be to extract the input and persistence methods into their own services,
+// and further extract the league building into its own service for testability.
 public abstract class RunnerBase : IRunner
 {
 	// FWN 2023-04-02: These values should ideally be extracted to a configuration file, but it's beyond the scope.
 	private const int WinPoints = 3;
 	private const int DrawPoints = 1;
 
-	// TODO: Add unit tests for services.
 	protected readonly IConfiguration Config;
 	private readonly IMapper _mapper;
 	private readonly IRepository<MatchScore> _matchScoreRepository;
@@ -34,21 +36,23 @@ public abstract class RunnerBase : IRunner
 		_leagueStandingRepository = leagueStandingRepository;
 	}
 
-	public async Task RunAsync(CancellationToken cancellationToken)
+	public Task RunAsync(CancellationToken cancellationToken)
 	{
 		Console.WriteLine(ConsoleMessages.ApplicationTitle);
 		var matchScores = new List<Common.Models.MatchScore>();
 		var league = new SortedDictionary<string, int>();
 
-		GetInput(cancellationToken, matchScores, league);
+		GetInput(matchScores, league, cancellationToken);
 		PersistResults(matchScores, league);
 		OutputResultsToConsole(league);
+
+		return Task.CompletedTask;
 	}
 
 	protected abstract void GetInput(
-		CancellationToken cancellationToken,
 		List<Common.Models.MatchScore> matchScores,
-		SortedDictionary<string, int> league);
+		SortedDictionary<string, int> league,
+		CancellationToken cancellationToken);
 
 	protected static void ProcessInput(
 		List<Common.Models.MatchScore> matchScores,
@@ -101,6 +105,21 @@ public abstract class RunnerBase : IRunner
 		}
 	}
 
+	// FWN 2023-04-02: The requirements specify "Persist the results to a db schema". There's some ambiguity around
+	// the word results for me. I assume that this refers to the raw input results as mentioned by
+	// "The input contains the results of a game". In case it refers to the results of the application processing,
+	// I've also persisted the league standings.
+	private void PersistResults(List<Common.Models.MatchScore> matchScores, SortedDictionary<string, int> league)
+	{
+		_matchScoreRepository.Persist(_mapper.Map<IEnumerable<MatchScore>>(matchScores));
+		_leagueStandingRepository.Persist(_mapper.Map<IEnumerable<LeagueStanding>>(league));
+	}
+
+	// FWN 2023-04-02: The requirements are also slightly ambiguous around the display of tied teams in the log.
+	// "If two or more teams have the same number of points then they should have the same ranking and be
+	// ordered alphabetically." In other words, for the example input, Portugal and South Africa should have
+	// the same ranking of 3, but in the example output they are 3 and 4. I went with the interpretation that
+	// matches the example output.
 	private static void OutputResultsToConsole(SortedDictionary<string, int> league)
 	{
 		Console.WriteLine(ConsoleMessages.OutputHeader);
@@ -113,11 +132,5 @@ public abstract class RunnerBase : IRunner
 			Console.WriteLine($"{position}. {entry.Key}, {entry.Value} pts");
 			position++;
 		}
-	}
-
-	private void PersistResults(List<Common.Models.MatchScore> matchScores, SortedDictionary<string, int> league)
-	{
-		_matchScoreRepository.Persist(_mapper.Map<IEnumerable<MatchScore>>(matchScores));
-		_leagueStandingRepository.Persist(_mapper.Map<IEnumerable<LeagueStanding>>(league));
 	}
 }

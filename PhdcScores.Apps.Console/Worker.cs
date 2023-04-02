@@ -5,12 +5,10 @@ namespace PhdcScores.Apps.Console;
 public class Worker : BackgroundService
 {
 	private readonly IRunner _runner;
-	private readonly ILogger<Worker> _logger;
 
-	public Worker(IRunner runner, ILogger<Worker> logger)
+	public Worker(IRunner runner)
 	{
 		_runner = runner;
-		_logger = logger;
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)

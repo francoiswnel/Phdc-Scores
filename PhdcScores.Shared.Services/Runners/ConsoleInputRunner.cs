@@ -21,9 +21,9 @@ public class ConsoleInputRunner : RunnerBase
 	}
 
 	protected override void GetInput(
-		CancellationToken cancellationToken,
 		List<Common.Models.MatchScore> matchScores,
-		SortedDictionary<string, int> league)
+		SortedDictionary<string, int> league,
+		CancellationToken cancellationToken)
 	{
 		Console.WriteLine(ConsoleMessages.InputPrompt);
 

@@ -1,4 +1,6 @@
-﻿namespace PhdcScores.Shared.Common.Entities;
+﻿#nullable disable
+
+namespace PhdcScores.Shared.Common.Entities;
 
 public class LeagueStanding : Entity
 {
