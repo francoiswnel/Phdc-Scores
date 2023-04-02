@@ -1,18 +1,28 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using PhdcScores.Shared.Common.Constants;
-using PhdcScores.Shared.Common.Models;
+using PhdcScores.Shared.Common.Entities;
+using PhdcScores.Shared.Data.Repositories;
 
 namespace PhdcScores.Shared.Services.Runners;
 
 public class ConsoleInputRunner : RunnerBase
 {
-	public ConsoleInputRunner(IConfiguration config) : base(config)
+	public ConsoleInputRunner(
+		IConfiguration config,
+		IMapper mapper,
+		IRepository<MatchScore> matchScoreRepository,
+		IRepository<LeagueStanding> leagueStandingRepository) : base(
+		config,
+		mapper,
+		matchScoreRepository,
+		leagueStandingRepository)
 	{
 	}
 
 	protected override void GetInput(
 		CancellationToken cancellationToken,
-		List<MatchScore> matchScores,
+		List<Common.Models.MatchScore> matchScores,
 		SortedDictionary<string, int> league)
 	{
 		Console.WriteLine(ConsoleMessages.InputPrompt);

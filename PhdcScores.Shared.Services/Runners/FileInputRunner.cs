@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using PhdcScores.Shared.Common.Constants;
+using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Common.Exceptions;
-using PhdcScores.Shared.Common.Models;
+using PhdcScores.Shared.Data.Repositories;
 
 namespace PhdcScores.Shared.Services.Runners;
 
@@ -9,14 +11,22 @@ public class FileInputRunner : RunnerBase
 {
 	private readonly string _path;
 
-	public FileInputRunner(IConfiguration config) : base(config)
+	public FileInputRunner(
+		IConfiguration config,
+		IMapper mapper,
+		IRepository<MatchScore> matchScoreRepository,
+		IRepository<LeagueStanding> leagueStandingRepository) : base(
+		config,
+		mapper,
+		matchScoreRepository,
+		leagueStandingRepository)
 	{
 		_path = Config[Arguments.FileName] ?? throw new InvalidConfigurationException(Arguments.FileName);
 	}
 
 	protected override void GetInput(
 		CancellationToken cancellationToken,
-		List<MatchScore> matchScores,
+		List<Common.Models.MatchScore> matchScores,
 		SortedDictionary<string, int> league)
 	{
 		Console.WriteLine($"{ConsoleMessages.FileProcessing} {_path}");

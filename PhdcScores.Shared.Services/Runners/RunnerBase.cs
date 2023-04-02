@@ -1,8 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using PhdcScores.Shared.Common.Constants;
+using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Common.Enums;
 using PhdcScores.Shared.Common.Exceptions;
 using PhdcScores.Shared.Common.Models;
+using PhdcScores.Shared.Data.Repositories;
+using MatchScore = PhdcScores.Shared.Common.Entities.MatchScore;
 
 namespace PhdcScores.Shared.Services.Runners;
 
@@ -14,31 +18,42 @@ public abstract class RunnerBase : IRunner
 
 	// TODO: Add unit tests for services.
 	protected readonly IConfiguration Config;
+	private readonly IMapper _mapper;
+	private readonly IRepository<MatchScore> _matchScoreRepository;
+	private readonly IRepository<LeagueStanding> _leagueStandingRepository;
 
-	protected RunnerBase(IConfiguration config)
+	protected RunnerBase(
+		IConfiguration config,
+		IMapper mapper,
+		IRepository<MatchScore> matchScoreRepository,
+		IRepository<LeagueStanding> leagueStandingRepository)
 	{
 		Config = config;
+		_mapper = mapper;
+		_matchScoreRepository = matchScoreRepository;
+		_leagueStandingRepository = leagueStandingRepository;
 	}
 
 	public async Task RunAsync(CancellationToken cancellationToken)
 	{
 		Console.WriteLine(ConsoleMessages.ApplicationTitle);
-		var matchScores = new List<MatchScore>();
+		var matchScores = new List<Common.Models.MatchScore>();
 		var league = new SortedDictionary<string, int>();
 
 		GetInput(cancellationToken, matchScores, league);
-
-		// TODO: Persist input results and league.
-
+		PersistResults(matchScores, league);
 		OutputResultsToConsole(league);
 	}
 
 	protected abstract void GetInput(
 		CancellationToken cancellationToken,
-		List<MatchScore> matchScores,
+		List<Common.Models.MatchScore> matchScores,
 		SortedDictionary<string, int> league);
 
-	protected static void ProcessInput(List<MatchScore> matchScores, SortedDictionary<string, int> league, string input)
+	protected static void ProcessInput(
+		List<Common.Models.MatchScore> matchScores,
+		SortedDictionary<string, int> league,
+		string input)
 	{
 		var matchScore = ParseInputToMatchScore(input);
 
@@ -46,11 +61,11 @@ public abstract class RunnerBase : IRunner
 		UpdateLeague(league, matchScore);
 	}
 
-	private static MatchScore ParseInputToMatchScore(string input)
+	private static Common.Models.MatchScore ParseInputToMatchScore(string input)
 	{
 		var teamScores = input.Split(",").Select(CreateTeamScore).ToList();
 
-		return new MatchScore(teamScores);
+		return new Common.Models.MatchScore(teamScores);
 	}
 
 	private static TeamScore CreateTeamScore(string nameAndGoals)
@@ -61,7 +76,7 @@ public abstract class RunnerBase : IRunner
 		return new TeamScore(name, goals);
 	}
 
-	private static void UpdateLeague(SortedDictionary<string, int> league, MatchScore matchScore)
+	private static void UpdateLeague(SortedDictionary<string, int> league, Common.Models.MatchScore matchScore)
 	{
 		// FWN 2023-04-02: If the teams are not already in the dictionary, insert initial records for them so that
 		// they are accounted for even if they lose all games.
@@ -98,5 +113,11 @@ public abstract class RunnerBase : IRunner
 			Console.WriteLine($"{position}. {entry.Key}, {entry.Value} pts");
 			position++;
 		}
+	}
+
+	private void PersistResults(List<Common.Models.MatchScore> matchScores, SortedDictionary<string, int> league)
+	{
+		_matchScoreRepository.Persist(_mapper.Map<IEnumerable<MatchScore>>(matchScores));
+		_leagueStandingRepository.Persist(_mapper.Map<IEnumerable<LeagueStanding>>(league));
 	}
 }

@@ -1,4 +1,8 @@
 ﻿using PhdcScores.Shared.Common.Constants;
+using PhdcScores.Shared.Common.Entities;
+using PhdcScores.Shared.Common.Mapping;
+using PhdcScores.Shared.Data.DataContext;
+using PhdcScores.Shared.Data.Repositories;
 using PhdcScores.Shared.Services.Runners;
 
 namespace PhdcScores.Apps.Console;
@@ -19,8 +23,14 @@ public static class Program
 		services.AddHostedService<Worker>();
 
 		if (args.Any() && args[0] == $"--{Arguments.FileName}")
-			services.AddSingleton<IRunner, FileInputRunner>();
+			services.AddTransient<IRunner, FileInputRunner>();
 		else
-			services.AddSingleton<IRunner, ConsoleInputRunner>();
+			services.AddTransient<IRunner, ConsoleInputRunner>();
+
+		services.AddTransient<IDataContext, DataContext>();
+		services.AddTransient<IRepository<MatchScore>, MatchScoreRepository>();
+		services.AddTransient<IRepository<LeagueStanding>, LeagueStandingRepository>();
+
+		services.AddAutoMapper(typeof(ModelToEntityMappingProfile));
 	}
 }

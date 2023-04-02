@@ -5,4 +5,11 @@
 		<Nullable>enable</Nullable>
 		<RootNamespace>PhdcScores.Shared.Data</RootNamespace>
 	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.4" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\PhdcScores.Shared.Common\PhdcScores.Shared.Common.csproj" />
+	</ItemGroup>
 </Project>
