@@ -1,30 +1,20 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using PhdcScores.Shared.Common.Constants;
-using PhdcScores.Shared.Common.Entities;
-using PhdcScores.Shared.Data.Repositories;
+using PhdcScores.Shared.Common.Models;
 using PhdcScores.Shared.Services.Builders;
+using PhdcScores.Shared.Services.Persisters;
 
 namespace PhdcScores.Shared.Services.Runners;
 
 public class ConsoleInputRunner : RunnerBase
 {
-	public ConsoleInputRunner(
-		IConfiguration config,
-		IMapper mapper,
-		IRepository<MatchScore> matchScoreRepository,
-		IRepository<LeagueStanding> leagueStandingRepository,
-		IResultsBuilder resultsBuilder) : base(
-		config,
-		mapper,
-		matchScoreRepository,
-		leagueStandingRepository,
-		resultsBuilder)
+	public ConsoleInputRunner(IConfiguration config, IResultsPersister resultsPersister, IResultsBuilder resultsBuilder)
+		: base(config, resultsPersister, resultsBuilder)
 	{
 	}
 
 	protected override void GetInput(
-		List<Common.Models.MatchScore> matchScores,
+		List<MatchScore> matchScores,
 		SortedDictionary<string, int> league,
 		CancellationToken cancellationToken)
 	{

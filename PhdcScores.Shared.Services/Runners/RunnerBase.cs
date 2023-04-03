@@ -1,49 +1,31 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using PhdcScores.Shared.Common.Constants;
-using PhdcScores.Shared.Common.Entities;
-using PhdcScores.Shared.Common.Enums;
-using PhdcScores.Shared.Common.Exceptions;
 using PhdcScores.Shared.Common.Models;
-using PhdcScores.Shared.Data.Repositories;
 using PhdcScores.Shared.Services.Builders;
-using MatchScore = PhdcScores.Shared.Common.Entities.MatchScore;
+using PhdcScores.Shared.Services.Extensions;
+using PhdcScores.Shared.Services.Persisters;
 
 namespace PhdcScores.Shared.Services.Runners;
 
-// FWN 2023-04-02: Not very happy with the complexity of this class, but I've run out of the time needed to decompose
-// it even further. Next steps would be to extract the input and persistence methods into their own services,
-// and further extract the league building into its own service for testability.
+// FWN 2023-04-03: Not very happy with the complexity of this class, but I've run out of the time needed to decompose
+// it even further. Next steps would be to extract the input into its own service for better testability.
 public abstract class RunnerBase : IRunner
 {
-	// FWN 2023-04-02: These values should ideally be extracted to a configuration file, but it's beyond the scope.
-	private const int WinPoints = 3;
-	private const int DrawPoints = 1;
-
 	protected readonly IConfiguration Config;
-	private readonly IMapper _mapper;
-	private readonly IRepository<MatchScore> _matchScoreRepository;
-	private readonly IRepository<LeagueStanding> _leagueStandingRepository;
+	private readonly IResultsPersister _resultsPersister;
 	private readonly IResultsBuilder _resultsBuilder;
 
-	protected RunnerBase(
-		IConfiguration config,
-		IMapper mapper,
-		IRepository<MatchScore> matchScoreRepository,
-		IRepository<LeagueStanding> leagueStandingRepository,
-		IResultsBuilder resultsBuilder)
+	protected RunnerBase(IConfiguration config, IResultsPersister resultsPersister, IResultsBuilder resultsBuilder)
 	{
 		Config = config;
-		_mapper = mapper;
-		_matchScoreRepository = matchScoreRepository;
-		_leagueStandingRepository = leagueStandingRepository;
+		_resultsPersister = resultsPersister;
 		_resultsBuilder = resultsBuilder;
 	}
 
 	public Task RunAsync(CancellationToken cancellationToken)
 	{
 		Console.WriteLine(ConsoleMessages.ApplicationTitle);
-		var matchScores = new List<Common.Models.MatchScore>();
+		var matchScores = new List<MatchScore>();
 		var league = new SortedDictionary<string, int>();
 
 		GetInput(matchScores, league, cancellationToken);
@@ -54,26 +36,23 @@ public abstract class RunnerBase : IRunner
 	}
 
 	protected abstract void GetInput(
-		List<Common.Models.MatchScore> matchScores,
+		List<MatchScore> matchScores,
 		SortedDictionary<string, int> league,
 		CancellationToken cancellationToken);
 
-	protected static void ProcessInput(
-		List<Common.Models.MatchScore> matchScores,
-		SortedDictionary<string, int> league,
-		string input)
+	protected static void ProcessInput(List<MatchScore> matchScores, SortedDictionary<string, int> league, string input)
 	{
 		var matchScore = ParseInputToMatchScore(input);
 
 		matchScores.Add(matchScore);
-		UpdateLeague(league, matchScore);
+		league.UpdateLeague(matchScore);
 	}
 
-	private static Common.Models.MatchScore ParseInputToMatchScore(string input)
+	private static MatchScore ParseInputToMatchScore(string input)
 	{
 		var teamScores = input.Split(",").Select(CreateTeamScore).ToList();
 
-		return new Common.Models.MatchScore(teamScores);
+		return new MatchScore(teamScores);
 	}
 
 	private static TeamScore CreateTeamScore(string nameAndGoals)
@@ -84,47 +63,14 @@ public abstract class RunnerBase : IRunner
 		return new TeamScore(name, goals);
 	}
 
-	private static void UpdateLeague(SortedDictionary<string, int> league, Common.Models.MatchScore matchScore)
+	private void PersistResults(List<MatchScore> matchScores, SortedDictionary<string, int> league)
 	{
-		// FWN 2023-04-02: If the teams are not already in the dictionary, insert initial records for them so that
-		// they are accounted for even if they lose all games.
-		// Assumption: A loss is always worth 0 points.
-		league.TryAdd(matchScore.HomeTeam.Name, 0);
-		league.TryAdd(matchScore.AwayTeam.Name, 0);
-
-		switch (matchScore.Result)
-		{
-			case Result.HomeTeamWin:
-				league[matchScore.HomeTeam.Name] += WinPoints;
-				break;
-			case Result.AwayTeamWin:
-				league[matchScore.AwayTeam.Name] += WinPoints;
-				break;
-			case Result.Draw:
-				league[matchScore.HomeTeam.Name] += DrawPoints;
-				league[matchScore.AwayTeam.Name] += DrawPoints;
-				break;
-			default:
-				throw new InvalidMatchResultException();
-		}
-	}
-
-	// FWN 2023-04-02: The requirements specify "Persist the results to a db schema". There's some ambiguity around
-	// the word results for me. I assume that this refers to the raw input results as mentioned by
-	// "The input contains the results of a game". In case it refers to the results of the application processing,
-	// I've also persisted the league standings.
-	private void PersistResults(List<Common.Models.MatchScore> matchScores, SortedDictionary<string, int> league)
-	{
-		_matchScoreRepository.Persist(_mapper.Map<IEnumerable<MatchScore>>(matchScores));
-		_leagueStandingRepository.Persist(_mapper.Map<IEnumerable<LeagueStanding>>(league));
+		_resultsPersister.Persist(matchScores, league);
 	}
 
 	private void OutputResultsToConsole(SortedDictionary<string, int> league)
 	{
 		Console.WriteLine(ConsoleMessages.OutputHeader);
-
-		var results = _resultsBuilder.Build(league);
-
-		Console.Write(results);
+		Console.Write(_resultsBuilder.Build(league));
 	}
 }

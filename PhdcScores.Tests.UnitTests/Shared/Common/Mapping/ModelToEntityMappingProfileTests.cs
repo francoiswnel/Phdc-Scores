@@ -3,10 +3,12 @@
 using AutoMapper;
 using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Common.Mapping;
+using PhdcScores.Tests.UnitTests.Constants;
 using MatchScore = PhdcScores.Shared.Common.Models.MatchScore;
 
 namespace PhdcScores.Tests.UnitTests.Shared.Common.Mapping;
 
+[TestFixture(Category = TestCategories.UnitTests)]
 public class ModelToEntityMappingProfileTests
 {
 	private Fixture _fixture;

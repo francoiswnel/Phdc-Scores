@@ -3,10 +3,12 @@
 using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Data.DataContext;
 using PhdcScores.Shared.Data.Repositories;
+using PhdcScores.Tests.UnitTests.Constants;
 
 namespace PhdcScores.Tests.UnitTests.Shared.Data.Repositories;
 
 // TODO: Add tests for retrieving data. Reason: Out of scope.
+[TestFixture(Category = TestCategories.UnitTests)]
 public class LeagueStandingRepositoryTests : RepositoryTestsBase
 {
 	private Fixture _fixture;

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace PhdcScores.Tests.UnitTests.Shared.Data.Repositories;
 
-public class RepositoryTestsBase
+public abstract class RepositoryTestsBase
 {
 	protected static Mock<DbSet<T>> GetMockDbSet<T>(IEnumerable<T> enumerable)
 		where T : class
