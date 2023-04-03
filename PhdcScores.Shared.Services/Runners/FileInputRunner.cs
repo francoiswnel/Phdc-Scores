@@ -4,6 +4,7 @@ using PhdcScores.Shared.Common.Constants;
 using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Common.Exceptions;
 using PhdcScores.Shared.Data.Repositories;
+using PhdcScores.Shared.Services.Builders;
 
 namespace PhdcScores.Shared.Services.Runners;
 
@@ -15,11 +16,13 @@ public class FileInputRunner : RunnerBase
 		IConfiguration config,
 		IMapper mapper,
 		IRepository<MatchScore> matchScoreRepository,
-		IRepository<LeagueStanding> leagueStandingRepository) : base(
+		IRepository<LeagueStanding> leagueStandingRepository,
+		IResultsBuilder resultsBuilder) : base(
 		config,
 		mapper,
 		matchScoreRepository,
-		leagueStandingRepository)
+		leagueStandingRepository,
+		resultsBuilder)
 	{
 		_path = Config[Arguments.FileName] ?? throw new InvalidConfigurationException(Arguments.FileName);
 	}

@@ -4,6 +4,7 @@ using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Data.Repositories;
+using PhdcScores.Shared.Services.Builders;
 using PhdcScores.Shared.Services.Runners;
 
 namespace PhdcScores.Tests.UnitTests.Shared.Services.Runners;
@@ -16,6 +17,7 @@ public class FileInputRunnerTests
 	private Mock<IMapper> _mockMapper;
 	private Mock<IRepository<MatchScore>> _mockMatchScoreRepository;
 	private Mock<IRepository<LeagueStanding>> _mockLeagueStandingRepository;
+	private Mock<IResultsBuilder> _mockResultsBuilder;
 	private FileInputRunner _fileInputRunner;
 
 	[SetUp]
@@ -26,11 +28,13 @@ public class FileInputRunnerTests
 		_mockMapper = new Mock<IMapper>(MockBehavior.Strict);
 		_mockMatchScoreRepository = new Mock<IRepository<MatchScore>>(MockBehavior.Strict);
 		_mockLeagueStandingRepository = new Mock<IRepository<LeagueStanding>>(MockBehavior.Strict);
+		_mockResultsBuilder = new Mock<IResultsBuilder>(MockBehavior.Strict);
 
 		_fileInputRunner = new FileInputRunner(
 			_mockConfiguration.Object,
 			_mockMapper.Object,
 			_mockMatchScoreRepository.Object,
-			_mockLeagueStandingRepository.Object);
+			_mockLeagueStandingRepository.Object,
+			_mockResultsBuilder.Object);
 	}
 }

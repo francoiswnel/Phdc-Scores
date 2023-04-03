@@ -6,6 +6,7 @@ using PhdcScores.Shared.Common.Enums;
 using PhdcScores.Shared.Common.Exceptions;
 using PhdcScores.Shared.Common.Models;
 using PhdcScores.Shared.Data.Repositories;
+using PhdcScores.Shared.Services.Builders;
 using MatchScore = PhdcScores.Shared.Common.Entities.MatchScore;
 
 namespace PhdcScores.Shared.Services.Runners;
@@ -23,17 +24,20 @@ public abstract class RunnerBase : IRunner
 	private readonly IMapper _mapper;
 	private readonly IRepository<MatchScore> _matchScoreRepository;
 	private readonly IRepository<LeagueStanding> _leagueStandingRepository;
+	private readonly IResultsBuilder _resultsBuilder;
 
 	protected RunnerBase(
 		IConfiguration config,
 		IMapper mapper,
 		IRepository<MatchScore> matchScoreRepository,
-		IRepository<LeagueStanding> leagueStandingRepository)
+		IRepository<LeagueStanding> leagueStandingRepository,
+		IResultsBuilder resultsBuilder)
 	{
 		Config = config;
 		_mapper = mapper;
 		_matchScoreRepository = matchScoreRepository;
 		_leagueStandingRepository = leagueStandingRepository;
+		_resultsBuilder = resultsBuilder;
 	}
 
 	public Task RunAsync(CancellationToken cancellationToken)
@@ -115,22 +119,12 @@ public abstract class RunnerBase : IRunner
 		_leagueStandingRepository.Persist(_mapper.Map<IEnumerable<LeagueStanding>>(league));
 	}
 
-	// FWN 2023-04-02: The requirements are also slightly ambiguous around the display of tied teams in the log.
-	// "If two or more teams have the same number of points then they should have the same ranking and be
-	// ordered alphabetically." In other words, for the example input, Portugal and South Africa should have
-	// the same ranking of 3, but in the example output they are 3 and 4. I went with the interpretation that
-	// matches the example output.
-	private static void OutputResultsToConsole(SortedDictionary<string, int> league)
+	private void OutputResultsToConsole(SortedDictionary<string, int> league)
 	{
 		Console.WriteLine(ConsoleMessages.OutputHeader);
 
-		var position = 1;
-		var leagueOrderedByScoreDescending = league.OrderByDescending(l => l.Value);
+		var results = _resultsBuilder.Build(league);
 
-		foreach (var entry in leagueOrderedByScoreDescending)
-		{
-			Console.WriteLine($"{position}. {entry.Key}, {entry.Value} pts");
-			position++;
-		}
+		Console.Write(results);
 	}
 }

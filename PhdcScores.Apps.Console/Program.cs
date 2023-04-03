@@ -3,6 +3,7 @@ using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Common.Mapping;
 using PhdcScores.Shared.Data.DataContext;
 using PhdcScores.Shared.Data.Repositories;
+using PhdcScores.Shared.Services.Builders;
 using PhdcScores.Shared.Services.Runners;
 
 namespace PhdcScores.Apps.Console;
@@ -30,6 +31,8 @@ public static class Program
 		services.AddTransient<IDataContext, DataContext>();
 		services.AddTransient<IRepository<MatchScore>, MatchScoreRepository>();
 		services.AddTransient<IRepository<LeagueStanding>, LeagueStandingRepository>();
+
+		services.AddTransient<IResultsBuilder, ResultsBuilder>();
 
 		services.AddAutoMapper(typeof(ModelToEntityMappingProfile));
 	}

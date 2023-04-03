@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using PhdcScores.Shared.Common.Constants;
 using PhdcScores.Shared.Common.Entities;
 using PhdcScores.Shared.Data.Repositories;
+using PhdcScores.Shared.Services.Builders;
 
 namespace PhdcScores.Shared.Services.Runners;
 
@@ -12,11 +13,13 @@ public class ConsoleInputRunner : RunnerBase
 		IConfiguration config,
 		IMapper mapper,
 		IRepository<MatchScore> matchScoreRepository,
-		IRepository<LeagueStanding> leagueStandingRepository) : base(
+		IRepository<LeagueStanding> leagueStandingRepository,
+		IResultsBuilder resultsBuilder) : base(
 		config,
 		mapper,
 		matchScoreRepository,
-		leagueStandingRepository)
+		leagueStandingRepository,
+		resultsBuilder)
 	{
 	}
 
